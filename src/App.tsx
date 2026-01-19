@@ -5,6 +5,7 @@ import { PrimaryButton } from './components/PrimaryButton'
 import { SecondaryButton } from './components/SecondaryButton'
 import { SessionHeader } from './components/SessionHeader'
 import { StatsView } from './components/StatsView'
+import { APP_NAME } from './config'
 import { questions } from './data/questions'
 import type { Question, SessionResult } from './types'
 
@@ -252,10 +253,10 @@ function App() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                PulsePrep
+                {APP_NAME}
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">
-                {isContributePage ? 'Contribute to PulsePrep' : 'Random infinite MCQ training'}
+                {isContributePage ? `Contribute to ${APP_NAME}` : 'Random infinite MCQ training'}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-slate-300">
                 {isContributePage
@@ -398,7 +399,7 @@ function App() {
 
         <footer className="rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-5 text-xs text-slate-400">
           <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-            <span>PulsePrep · Practice smart, contribute smarter.</span>
+            <span>{APP_NAME} · Practice smart, contribute smarter.</span>
             <nav className="flex items-center gap-3" aria-label="Footer">
               <a
                 className="rounded-full px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
