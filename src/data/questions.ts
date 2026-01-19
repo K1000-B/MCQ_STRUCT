@@ -587,7 +587,7 @@ export const questions: Question[] = [
   },
   {
     id: 45,
-    prompt: 'σ_zz = E e_zz is:',
+    prompt: 'sigma_zz = E e_zz is:',
     multiple: false,
     answers: [
       { key: 'a', text: 'wrong', correct: false },
@@ -681,6 +681,230 @@ export const questions: Question[] = [
         text: 'the torsion can be different from zero only if the torsional moment, computed with respect to the shear center, is not null',
         correct: true
       }
+    ]
+  },
+  // Append these objects after id: 50 (same file)
+
+  {
+    id: 51,
+    prompt: '"Differential bending" is related to:',
+    multiple: false,
+    answers: [
+      {
+        key: 'a',
+        text: 'the different bending behavior of beams around the principal axis x and y',
+        correct: false
+      },
+      { key: 'b', text: 'torsional stiffness', correct: false },
+      { key: 'c', text: 'interaction between axial and bending stiffness of a beam', correct: false },
+      {
+        key: 'd',
+        text: 'the derivative of the axial stress in the panel of a thin-walled cross-section',
+        correct: true
+      },
+      { key: 'e', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 52,
+    prompt: 'The PCVW:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'cannot be applied to statically determined systems', correct: false },
+      {
+        key: 'b',
+        text: 'can be applied to statically determined systems, but only in order to compute the reaction forces and moments',
+        correct: false
+      },
+      {
+        key: 'c',
+        text: 'can be applied to statically determined systems only in order to compute the displacement and/or the rotation of a given point',
+        correct: false
+      },
+      { key: 'd', text: 'is equivalent to the PVW for statically determined systems', correct: true },
+      { key: 'e', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 53,
+    prompt: 'Hermitian shape functions:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'are used to approximate the torsional moment using the Ritz method', correct: false },
+      { key: 'b', text: 'are required in order to build Euler-Bernoulli beam FEs', correct: true },
+      {
+        key: 'c',
+        text: 'are special C² shape functions required to build high-performance beam FEs',
+        correct: false
+      },
+      { key: 'd', text: 'need to be avoided because they reduce the order of convergence', correct: false },
+      { key: 'e', text: 'are useless', correct: false },
+      { key: 'f', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 54,
+    prompt: '"Crippling" is:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'a failure mode of thin-walled compressed beam', correct: true },
+      { key: 'b', text: 'a failure mode of compact compressed beam', correct: false },
+      { key: 'c', text: 'a failure mode affecting the fuselage of Boeing 737 MAX', correct: false },
+      { key: 'd', text: 'a failure mode of railways', correct: false },
+      { key: 'e', text: 'a special design technique preventing the buckling of beams', correct: false },
+      { key: 'f', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 55,
+    prompt:
+      'Assume that the solution of a given three dimensional elastic problem has a finite H₁₀ norm; an approximated solution, obtained with quadratic finite elements with average dimension h:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'has quadratic convergence of the stress with respect to h', correct: false },
+      { key: 'b', text: 'has cubic convergence of the stress with respect to h', correct: false },
+      { key: 'c', text: 'has linear convergence of the displacements with respect to h', correct: false },
+      { key: 'd', text: 'has quadratic convergence of the displacements with respect to h', correct: true },
+      { key: 'e', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 56,
+    prompt:
+      'Let Ψ(x,y) be the warping function for the torsion problem; the torsional stiffness GJ of a beam cross section is:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'GJ = ∫ G(x² + y²) dA', correct: false },
+      { key: 'b', text: 'none of the above', correct: false },
+      { key: 'c', text: 'GJ = ∫ G(x² + y² + Ψ²) dA', correct: false },
+      { key: 'd', text: 'none of the above', correct: true }
+    ]
+  },
+  {
+    id: 57,
+    prompt:
+      'When a clamped beam is loaded at its extremity by a shear force whose line of action goes through the shear center:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'the shear stress is null', correct: false },
+      { key: 'b', text: 'the shear strain is null', correct: false },
+      {
+        key: 'c',
+        text: 'it is not possible to load a beam in that way unless it has a thin-walled open cross-section',
+        correct: false
+      },
+      { key: 'd', text: 'the torsional rotation of the beam is null', correct: true },
+      { key: 'e', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 58,
+    prompt:
+      'An open cross section semi-monocoque beam is clamped at one extremity and loaded by a torsional moment; the torsional rotation angle is:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'infinite, because the torsional stiffness is null', correct: false },
+      { key: 'b', text: 'polynomial (linear) because of differential bending', correct: false },
+      { key: 'c', text: 'polynomial (linear) because of differential torsion', correct: false },
+      { key: 'd', text: 'polynomial (quadratic) because of differential bending', correct: false },
+      { key: 'e', text: 'polynomial (quadratic) because of differential torsion', correct: false },
+      { key: 'f', text: 'polynomial (cubic) because of differential bending', correct: false },
+      { key: 'g', text: 'polynomial (cubic) because of differential torsion', correct: true },
+      { key: 'h', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 59,
+    prompt: 'Isoparametric elements means that:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'the stress components have the same value all over the element', correct: false },
+      { key: 'b', text: 'the strain components have the same value all over the element', correct: false },
+      { key: 'c', text: 'the displacement components have the same value all over the element', correct: false },
+      {
+        key: 'd',
+        text: 'the strain components are interpolated using the same shape functions used for the undeformed position components',
+        correct: false
+      },
+      {
+        key: 'e',
+        text: 'the displacement components are interpolated using the same shape functions used for the undeformed position components',
+        correct: true
+      },
+      { key: 'f', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 60,
+    prompt: 'The elastic problem can be formulated in terms of displacements:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'always', correct: true },
+      { key: 'b', text: 'only for statically determinate problems', correct: false },
+      { key: 'c', text: 'only within the framework of the finite element method', correct: false },
+      { key: 'd', text: 'never', correct: false },
+      { key: 'e', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 61,
+    prompt: 'In a finite element procedure, the stress tensor:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'cannot be computed', correct: false },
+      { key: 'b', text: 'is part of the solution', correct: false },
+      { key: 'c', text: 'can be recovered from the solution', correct: true },
+      { key: 'd', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 62,
+    prompt: 'Consider an Euler-Bernoulli cantilever beam model, loaded with a uniformly distributed load. The exact solution is:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'trigonometric', correct: false },
+      { key: 'b', text: 'polynomial (quadratic)', correct: false },
+      { key: 'c', text: 'polynomial (cubic)', correct: true },
+      { key: 'd', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 63,
+    prompt: 'A plane-strain constitutive law:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'has null axial stress', correct: false },
+      { key: 'b', text: 'has null axial strain', correct: true },
+      { key: 'c', text: 'has null shear stress', correct: false },
+      { key: 'd', text: 'has null shear strain', correct: false },
+      { key: 'e', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 64,
+    prompt: 'The shear flows acting on a rib are:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'the flows equivalent to the load introduced by the rib', correct: false },
+      { key: 'b', text: 'the flows equivalent to the load applied to the whole structure', correct: false },
+      { key: 'c', text: 'the flows computed from the torsional equivalence equation', correct: false },
+      { key: 'd', text: 'the flows computed by resorting to the bending equations', correct: false },
+      { key: 'e', text: 'the flows equilibrating the load introduced by the rib', correct: true },
+      { key: 'f', text: 'none of the above', correct: false }
+    ]
+  },
+  {
+    id: 65,
+    prompt: 'According to the analytical solution, the shear stress transmitted by a glued connection is:',
+    multiple: false,
+    answers: [
+      { key: 'a', text: 'higher at the extremities', correct: false },
+      { key: 'b', text: 'lower at the extremities', correct: false },
+      { key: 'c', text: 'constant', correct: false },
+      { key: 'd', text: 'described by a sin function', correct: false },
+      { key: 'e', text: 'described by a cos function', correct: true },
+      { key: 'f', text: 'described by a quadratic polynomial function', correct: false },
+      { key: 'g', text: 'none of the above', correct: false }
     ]
   }
 ]
