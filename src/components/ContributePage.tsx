@@ -41,7 +41,7 @@ export function ContributePage() {
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6">
         <article className="flex h-full flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/70 p-7 shadow-lg shadow-slate-950/40">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
