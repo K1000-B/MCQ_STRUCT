@@ -261,7 +261,7 @@ function App() {
               <p className="mt-3 max-w-2xl text-sm text-slate-300">
                 {isContributePage
                   ? 'Support the project, share new questions, and help keep the training set fresh.'
-                  : 'Run focused practice sessions with instant feedback, a live timer, and clean session stats. Your progress resets after each session for fresh training every time.'}
+                  : 'Run focused practice sessions with instant feedback, a live timer, and clean session stats. Results reset at the end of each session for a fresh start every time.'}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -314,11 +314,10 @@ function App() {
                 <h2 className="text-2xl font-semibold text-white">Start a new session</h2>
                 <p className="mt-3 text-sm text-slate-300">
                   Tap start when you are ready to answer questions. Finish anytime to see your
-                  stats.
+                  stats. Sessions are temporary and do not save history.
                 </p>
                 <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <PrimaryButton onClick={startSession}>Start session</PrimaryButton>
-                  <SecondaryButton disabled>History is session-only</SecondaryButton>
                 </div>
               </section>
             )}
