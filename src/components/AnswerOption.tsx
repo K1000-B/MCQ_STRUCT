@@ -10,7 +10,7 @@ type AnswerOptionProps = {
 }
 
 const baseClasses =
-  'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition focus-within:ring-2 focus-within:ring-sky-400 focus-within:ring-offset-2 focus-within:ring-offset-slate-950'
+  'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition-colors focus-within:ring-2 focus-within:ring-sky-400 focus-within:ring-offset-2 focus-within:ring-offset-white dark:focus-within:ring-sky-300 dark:focus-within:ring-offset-slate-950 motion-reduce:transition-none'
 
 export function AnswerOption({
   answer,
@@ -23,13 +23,13 @@ export function AnswerOption({
   const isCorrect = answer.correct
   const statusStyles = showFeedback
     ? isCorrect
-      ? 'border-emerald-400/70 bg-emerald-500/10'
+      ? 'border-emerald-400/70 bg-emerald-500/15 dark:border-emerald-400/70 dark:bg-emerald-500/10'
       : selected
-        ? 'border-rose-400/70 bg-rose-500/10'
-        : 'border-slate-800 bg-slate-900/40'
+        ? 'border-rose-400/70 bg-rose-500/15 dark:border-rose-400/70 dark:bg-rose-500/10'
+        : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/40'
     : selected
-      ? 'border-sky-400/70 bg-sky-500/10'
-      : 'border-slate-800 bg-slate-900/40'
+      ? 'border-sky-400/70 bg-sky-500/15 dark:border-sky-300/70 dark:bg-sky-500/10'
+      : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/40'
 
   return (
     <label className={`${baseClasses} ${statusStyles}`}>
@@ -40,20 +40,20 @@ export function AnswerOption({
           checked={selected}
           onChange={() => onSelect(answer.key)}
           disabled={showFeedback}
-          className="h-4 w-4 rounded border-slate-600 text-sky-400 focus:ring-sky-400"
+          className="h-4 w-4 rounded border-slate-300 text-sky-500 focus:ring-sky-400 dark:border-slate-600 dark:text-sky-300 dark:focus:ring-sky-300"
         />
       </span>
-      <span className="flex-1 text-slate-100">
+      <span className="flex-1 text-slate-900 dark:text-slate-100">
         <span className="block font-medium">{answer.key.toUpperCase()}</span>
-        <span className="mt-1 block text-slate-300">{answer.text}</span>
+        <span className="mt-1 block text-slate-600 dark:text-slate-300">{answer.text}</span>
       </span>
       {showFeedback && isCorrect && (
-        <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300">
+        <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
           Correct
         </span>
       )}
       {showFeedback && !isCorrect && selected && (
-        <span className="rounded-full bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-300">
+        <span className="rounded-full bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-700 dark:text-rose-300">
           Incorrect
         </span>
       )}

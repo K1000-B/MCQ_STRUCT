@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Layout } from './components/Layout'
 import { QuestionCard } from './components/QuestionCard'
 import { PrimaryButton } from './components/PrimaryButton'
 import { SecondaryButton } from './components/SecondaryButton'
@@ -201,8 +202,8 @@ function App() {
       <div
         className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
           isCorrect
-            ? 'bg-emerald-500/20 text-emerald-200'
-            : 'bg-rose-500/20 text-rose-200'
+            ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-200'
+            : 'bg-rose-500/20 text-rose-700 dark:text-rose-200'
         }`}
       >
         {isCorrect ? 'Correct answer' : 'Incorrect answer'}
@@ -212,11 +213,14 @@ function App() {
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-950 px-4 py-12 text-slate-100">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-500/40 bg-slate-900/80 p-6">
-          <h1 className="text-2xl font-semibold text-white">No questions available</h1>
-          <p className="mt-2 text-sm text-slate-300">
-            Please add questions in <code className="text-rose-200">src/data/questions.ts</code> and
+      <div className="min-h-screen bg-slate-50 px-4 py-12 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-300 bg-white/90 p-6 shadow-sm dark:border-rose-500/40 dark:bg-slate-900/80">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
+            No questions available
+          </h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            Please add questions in{' '}
+            <code className="text-rose-600 dark:text-rose-200">src/data/questions.ts</code> and
             reload the app.
           </p>
         </div>
@@ -225,44 +229,41 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
-        <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/90 p-8 shadow-lg shadow-slate-950/40">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                PulsePrep
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">
-                Random infinite MCQ training
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm text-slate-300">
-                Run focused practice sessions with instant feedback, a live timer, and clean session
-                stats. Your progress resets after each session for fresh training every time.
-              </p>
-            </div>
-            <div className="hidden items-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-xs text-slate-300 sm:flex">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Ready · {questions.length} questions
-            </div>
+    <Layout
+      mode={mode}
+      questionCount={questions.length}
+      sessionTopBar={
+        mode === 'session' ? (
+          <SessionHeader
+            elapsed={formatDuration(elapsedMs)}
+            correct={correctCount}
+            incorrect={incorrectCount}
+            skipped={skippedCount}
+            streak={currentStreak}
+            bestStreak={bestStreak}
+            onFinish={finishSession}
+            variant="compact"
+          />
+        ) : null
+      }
+    >
+      {mode === 'home' && (
+        <section className="rounded-3xl border border-slate-200 bg-white/90 p-8 text-center shadow-lg shadow-slate-200/40 transition-colors dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-900/40 motion-reduce:transition-none">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+            Start a new session
+          </h2>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Tap start when you are ready to answer questions. Finish anytime to see your stats.
+          </p>
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <PrimaryButton onClick={startSession}>Start session</PrimaryButton>
           </div>
-        </header>
+        </section>
+      )}
 
-        {mode === 'home' && (
-          <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-center shadow-lg shadow-slate-900/40">
-            <h2 className="text-2xl font-semibold text-white">Start a new session</h2>
-            <p className="mt-3 text-sm text-slate-300">
-              Tap start when you are ready to answer questions. Finish anytime to see your stats.
-            </p>
-            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <PrimaryButton onClick={startSession}>Start session</PrimaryButton>
-              <SecondaryButton disabled>History is session-only</SecondaryButton>
-            </div>
-          </section>
-        )}
-
-        {mode === 'session' && currentQuestion && (
-          <div className="flex flex-col gap-6">
+      {mode === 'session' && currentQuestion && (
+        <div className="flex flex-col gap-6 pb-24 sm:pb-0">
+          <div className="lg:hidden">
             <SessionHeader
               elapsed={formatDuration(elapsedMs)}
               correct={correctCount}
@@ -272,65 +273,72 @@ function App() {
               bestStreak={bestStreak}
               onFinish={finishSession}
             />
+          </div>
 
-            <QuestionCard
-              question={currentQuestion}
-              selectedKeys={selectedKeys}
-              showFeedback={showFeedback}
-              onSelect={handleSelect}
-            />
+          <QuestionCard
+            question={currentQuestion}
+            selectedKeys={selectedKeys}
+            showFeedback={showFeedback}
+            onSelect={handleSelect}
+          />
 
-            <div className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  {statusBadge}
-                  {showFeedback && (
-                    <p className="text-sm text-slate-300">
-                      Review the highlighted choices and continue.
-                    </p>
-                  )}
+          <div className="fixed inset-x-0 bottom-0 z-20 sm:static">
+            <div className="mx-auto max-w-6xl px-4 pb-4 sm:px-0 sm:pb-0">
+              <div className="flex flex-col gap-4 rounded-t-3xl border border-slate-200 bg-white/95 p-5 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900/90 dark:shadow-slate-900/40 motion-reduce:transition-none sm:rounded-3xl">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {statusBadge}
+                    {showFeedback && (
+                      <p className="text-sm text-slate-600 dark:text-slate-300">
+                        Review the highlighted choices and continue.
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <SecondaryButton
+                      onClick={handleSkip}
+                      disabled={showFeedback}
+                      className="border-amber-300 text-amber-700 hover:border-amber-400 dark:border-amber-400/40 dark:text-amber-100 dark:hover:border-amber-300"
+                    >
+                      Skip
+                    </SecondaryButton>
+                    {!showFeedback && (
+                      <PrimaryButton
+                        onClick={handleCheckAnswer}
+                        disabled={selectedKeys.length === 0}
+                      >
+                        Check answer
+                      </PrimaryButton>
+                    )}
+                    {showFeedback && (
+                      <PrimaryButton onClick={advanceQuestion}>Next question</PrimaryButton>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <SecondaryButton
-                    onClick={handleSkip}
-                    disabled={showFeedback}
-                    className="border-amber-400/40 text-amber-100 hover:border-amber-300"
-                  >
-                    Skip
-                  </SecondaryButton>
-                  {!showFeedback && (
-                    <PrimaryButton onClick={handleCheckAnswer} disabled={selectedKeys.length === 0}>
-                      Check answer
-                    </PrimaryButton>
-                  )}
-                  {showFeedback && (
-                    <PrimaryButton onClick={advanceQuestion}>Next question</PrimaryButton>
-                  )}
-                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Skips do not count toward accuracy. Next question is available after checking.
+                </p>
               </div>
-              <p className="text-xs text-slate-400">
-                Skips do not count toward accuracy. Next question is available after checking.
-              </p>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {mode === 'results' && (
-          <StatsView
-            totalAnswered={totalAnswered}
-            correct={correctCount}
-            incorrect={incorrectCount}
-            skipped={skippedCount}
-            accuracy={accuracy}
-            avgTime={totalAnswered === 0 ? '0.0s' : formatSeconds(answeredTimeMs / totalAnswered)}
-            bestStreak={bestStreak}
-            sessionDuration={formatDuration(sessionDurationMs)}
-            recent={recentTen}
-            onRestart={startSession}
-          />
-        )}
-      </div>
-    </div>
+      {mode === 'results' && (
+        <StatsView
+          totalAnswered={totalAnswered}
+          correct={correctCount}
+          incorrect={incorrectCount}
+          skipped={skippedCount}
+          accuracy={accuracy}
+          avgTime={totalAnswered === 0 ? '0.0s' : formatSeconds(answeredTimeMs / totalAnswered)}
+          bestStreak={bestStreak}
+          sessionDuration={formatDuration(sessionDurationMs)}
+          recent={recentTen}
+          onRestart={startSession}
+        />
+      )}
+    </Layout>
   )
 }
 
