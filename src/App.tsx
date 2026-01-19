@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ContributePage } from './components/ContributePage'
 import { QuestionCard } from './components/QuestionCard'
 import { PrimaryButton } from './components/PrimaryButton'
 import { SecondaryButton } from './components/SecondaryButton'
@@ -51,6 +52,7 @@ const matchesCorrectAnswers = (question: Question, selections: string[]) => {
 
 function App() {
   const [mode, setMode] = useState<Mode>('home')
+  const [path, setPath] = useState(() => window.location.pathname)
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
   const [showFeedback, setShowFeedback] = useState(false)
@@ -79,10 +81,29 @@ function App() {
     return () => window.clearInterval(id)
   }, [mode, sessionStart])
 
+  useEffect(() => {
+    const handlePopState = () => {
+      setPath(window.location.pathname)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
   const totalAnswered = correctCount + incorrectCount
   const accuracy = totalAnswered === 0 ? 0 : (correctCount / totalAnswered) * 100
 
   const recentTen = useMemo(() => results.slice(-10).reverse(), [results])
+  const isContributePage = path === '/contribute'
+
+  const navigate = (nextPath: string) => {
+    if (nextPath === path) {
+      return
+    }
+    window.history.pushState({}, '', nextPath)
+    setPath(nextPath)
+  }
 
   const startSession = () => {
     const firstQuestion = pickQuestion(questions, [])
@@ -227,108 +248,181 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
-        <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/90 p-8 shadow-lg shadow-slate-950/40">
-          <div className="flex items-center justify-between gap-4">
+        <header className="flex flex-col gap-6 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/90 p-8 shadow-lg shadow-slate-950/40">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                 PulsePrep
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">
-                Random infinite MCQ training
+                {isContributePage ? 'Contribute to PulsePrep' : 'Random infinite MCQ training'}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-slate-300">
-                Run focused practice sessions with instant feedback, a live timer, and clean session
-                stats. Your progress resets after each session for fresh training every time.
+                {isContributePage
+                  ? 'Support the project, share new questions, and help keep the training set fresh.'
+                  : 'Run focused practice sessions with instant feedback, a live timer, and clean session stats. Your progress resets after each session for fresh training every time.'}
               </p>
             </div>
-            <div className="hidden items-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-xs text-slate-300 sm:flex">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Ready · {questions.length} questions
+            <div className="flex flex-wrap items-center gap-3">
+              <nav className="flex flex-wrap items-center gap-2 text-sm" aria-label="Primary">
+                <a
+                  className={`rounded-full px-4 py-2 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 ${
+                    !isContributePage
+                      ? 'bg-slate-100/10 text-white'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  href="/"
+                  aria-current={!isContributePage ? 'page' : undefined}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    navigate('/')
+                  }}
+                >
+                  Home
+                </a>
+                <a
+                  className={`rounded-full px-4 py-2 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 ${
+                    isContributePage
+                      ? 'bg-slate-100/10 text-white'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  href="/contribute"
+                  aria-current={isContributePage ? 'page' : undefined}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    navigate('/contribute')
+                  }}
+                >
+                  Contribute
+                </a>
+              </nav>
+              <div className="hidden items-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-xs text-slate-300 sm:flex">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Ready · {questions.length} questions
+              </div>
             </div>
           </div>
         </header>
 
-        {mode === 'home' && (
-          <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-center shadow-lg shadow-slate-900/40">
-            <h2 className="text-2xl font-semibold text-white">Start a new session</h2>
-            <p className="mt-3 text-sm text-slate-300">
-              Tap start when you are ready to answer questions. Finish anytime to see your stats.
-            </p>
-            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <PrimaryButton onClick={startSession}>Start session</PrimaryButton>
-              <SecondaryButton disabled>History is session-only</SecondaryButton>
-            </div>
-          </section>
-        )}
-
-        {mode === 'session' && currentQuestion && (
-          <div className="flex flex-col gap-6">
-            <SessionHeader
-              elapsed={formatDuration(elapsedMs)}
-              correct={correctCount}
-              incorrect={incorrectCount}
-              skipped={skippedCount}
-              streak={currentStreak}
-              bestStreak={bestStreak}
-              onFinish={finishSession}
-            />
-
-            <QuestionCard
-              question={currentQuestion}
-              selectedKeys={selectedKeys}
-              showFeedback={showFeedback}
-              onSelect={handleSelect}
-            />
-
-            <div className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  {statusBadge}
-                  {showFeedback && (
-                    <p className="text-sm text-slate-300">
-                      Review the highlighted choices and continue.
-                    </p>
-                  )}
+        {isContributePage ? (
+          <ContributePage />
+        ) : (
+          <>
+            {mode === 'home' && (
+              <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-center shadow-lg shadow-slate-900/40">
+                <h2 className="text-2xl font-semibold text-white">Start a new session</h2>
+                <p className="mt-3 text-sm text-slate-300">
+                  Tap start when you are ready to answer questions. Finish anytime to see your
+                  stats.
+                </p>
+                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <PrimaryButton onClick={startSession}>Start session</PrimaryButton>
+                  <SecondaryButton disabled>History is session-only</SecondaryButton>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <SecondaryButton
-                    onClick={handleSkip}
-                    disabled={showFeedback}
-                    className="border-amber-400/40 text-amber-100 hover:border-amber-300"
-                  >
-                    Skip
-                  </SecondaryButton>
-                  {!showFeedback && (
-                    <PrimaryButton onClick={handleCheckAnswer} disabled={selectedKeys.length === 0}>
-                      Check answer
-                    </PrimaryButton>
-                  )}
-                  {showFeedback && (
-                    <PrimaryButton onClick={advanceQuestion}>Next question</PrimaryButton>
-                  )}
+              </section>
+            )}
+
+            {mode === 'session' && currentQuestion && (
+              <div className="flex flex-col gap-6">
+                <SessionHeader
+                  elapsed={formatDuration(elapsedMs)}
+                  correct={correctCount}
+                  incorrect={incorrectCount}
+                  skipped={skippedCount}
+                  streak={currentStreak}
+                  bestStreak={bestStreak}
+                  onFinish={finishSession}
+                />
+
+                <QuestionCard
+                  question={currentQuestion}
+                  selectedKeys={selectedKeys}
+                  showFeedback={showFeedback}
+                  onSelect={handleSelect}
+                />
+
+                <div className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {statusBadge}
+                      {showFeedback && (
+                        <p className="text-sm text-slate-300">
+                          Review the highlighted choices and continue.
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <SecondaryButton
+                        onClick={handleSkip}
+                        disabled={showFeedback}
+                        className="border-amber-400/40 text-amber-100 hover:border-amber-300"
+                      >
+                        Skip
+                      </SecondaryButton>
+                      {!showFeedback && (
+                        <PrimaryButton
+                          onClick={handleCheckAnswer}
+                          disabled={selectedKeys.length === 0}
+                        >
+                          Check answer
+                        </PrimaryButton>
+                      )}
+                      {showFeedback && (
+                        <PrimaryButton onClick={advanceQuestion}>Next question</PrimaryButton>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Skips do not count toward accuracy. Next question is available after checking.
+                  </p>
                 </div>
               </div>
-              <p className="text-xs text-slate-400">
-                Skips do not count toward accuracy. Next question is available after checking.
-              </p>
-            </div>
-          </div>
+            )}
+
+            {mode === 'results' && (
+              <StatsView
+                totalAnswered={totalAnswered}
+                correct={correctCount}
+                incorrect={incorrectCount}
+                skipped={skippedCount}
+                accuracy={accuracy}
+                avgTime={totalAnswered === 0 ? '0.0s' : formatSeconds(answeredTimeMs / totalAnswered)}
+                bestStreak={bestStreak}
+                sessionDuration={formatDuration(sessionDurationMs)}
+                recent={recentTen}
+                onRestart={startSession}
+              />
+            )}
+          </>
         )}
 
-        {mode === 'results' && (
-          <StatsView
-            totalAnswered={totalAnswered}
-            correct={correctCount}
-            incorrect={incorrectCount}
-            skipped={skippedCount}
-            accuracy={accuracy}
-            avgTime={totalAnswered === 0 ? '0.0s' : formatSeconds(answeredTimeMs / totalAnswered)}
-            bestStreak={bestStreak}
-            sessionDuration={formatDuration(sessionDurationMs)}
-            recent={recentTen}
-            onRestart={startSession}
-          />
-        )}
+        <footer className="rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-5 text-xs text-slate-400">
+          <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+            <span>PulsePrep · Practice smart, contribute smarter.</span>
+            <nav className="flex items-center gap-3" aria-label="Footer">
+              <a
+                className="rounded-full px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+                href="/"
+                onClick={(event) => {
+                  event.preventDefault()
+                  navigate('/')
+                }}
+              >
+                Home
+              </a>
+              <a
+                className="rounded-full px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+                href="/contribute"
+                onClick={(event) => {
+                  event.preventDefault()
+                  navigate('/contribute')
+                }}
+              >
+                Contribute
+              </a>
+            </nav>
+          </div>
+        </footer>
       </div>
     </div>
   )

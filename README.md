@@ -8,6 +8,7 @@ A fully static, client-side MCQ training app built with Vite, React, and TypeScr
 - Single-choice and multiple-choice questions.
 - Session timer, streak tracking, and accuracy stats.
 - Results view with last 10 question outcomes.
+- Contribute page with donation link and question submission details.
 - No accounts, no backend, and no persistence beyond the active session.
 
 ## Getting started
@@ -38,3 +39,5 @@ npm run build
 ## Content updates
 
 Edit the question set in `src/data/questions.ts` to add or update questions.
+
+Visit `/contribute` to support the project or submit new questions by email.
