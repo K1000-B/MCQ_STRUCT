@@ -12,7 +12,7 @@ export function Layout({ mode, questionCount, sessionTopBar, children }: LayoutP
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100 motion-reduce:transition-none">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-8 sm:py-8">
-        <header className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-900/40">
+        <header className="w-full rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-900/40">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
@@ -40,7 +40,7 @@ export function Layout({ mode, questionCount, sessionTopBar, children }: LayoutP
           <div className="hidden lg:sticky lg:top-6 lg:z-20 lg:block">{sessionTopBar}</div>
         )}
 
-        <main className="flex flex-1 flex-col gap-6 sm:gap-8">{children}</main>
+        <main className="flex w-full flex-1 flex-col gap-6 sm:gap-8">{children}</main>
       </div>
     </div>
   )

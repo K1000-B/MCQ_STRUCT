@@ -262,7 +262,7 @@ function App() {
       )}
 
       {mode === 'session' && currentQuestion && (
-        <div className="flex flex-col gap-6 pb-24 sm:pb-0">
+        <div className="flex w-full flex-col gap-6 pb-[calc(9rem+env(safe-area-inset-bottom))] sm:pb-0">
           <div className="lg:hidden">
             <SessionHeader
               elapsed={formatDuration(elapsedMs)}
@@ -283,8 +283,8 @@ function App() {
           />
 
           <div className="fixed inset-x-0 bottom-0 z-20 sm:static">
-            <div className="mx-auto max-w-6xl px-4 pb-4 sm:px-0 sm:pb-0">
-              <div className="flex flex-col gap-4 rounded-t-3xl border border-slate-200 bg-white/95 p-5 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900/90 dark:shadow-slate-900/40 motion-reduce:transition-none sm:rounded-3xl">
+            <div className="mx-auto w-full max-w-6xl px-4 pb-4 sm:px-0 sm:pb-0">
+              <div className="flex w-full flex-col gap-4 rounded-t-3xl border border-slate-200 bg-white/95 p-5 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900/90 dark:shadow-slate-900/40 motion-reduce:transition-none sm:rounded-3xl">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex flex-wrap items-center gap-3">
                     {statusBadge}

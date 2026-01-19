@@ -17,7 +17,7 @@ export function QuestionCard({
   const groupName = `question-${question.id}`
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40 backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-900/40 motion-reduce:transition-none">
+    <section className="w-full rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40 backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-900/40 motion-reduce:transition-none">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
           Question {question.id}

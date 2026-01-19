@@ -28,7 +28,7 @@ export function SessionHeader({
 
   return (
     <header
-      className={`flex flex-col gap-4 transition-colors motion-reduce:transition-none sm:flex-row sm:items-center sm:justify-between ${wrapperStyles}`}
+      className={`flex w-full flex-col gap-4 transition-colors motion-reduce:transition-none sm:flex-row sm:items-center sm:justify-between ${wrapperStyles}`}
     >
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">

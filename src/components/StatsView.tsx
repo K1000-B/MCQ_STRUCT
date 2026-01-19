@@ -33,7 +33,7 @@ export function StatsView({
   onRestart,
 }: StatsViewProps) {
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40 transition-colors dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-900/40 motion-reduce:transition-none">
+    <section className="w-full rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40 transition-colors dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-900/40 motion-reduce:transition-none">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
