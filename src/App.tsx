@@ -11,7 +11,6 @@ import { questions } from './data/questions'
 import { shuffle } from './lib/shuffle'
 import { clearSession, loadSession, saveSession } from './sessionStorage'
 import type {
-  Answer,
   AnswerSnapshot,
   MistakeEntry,
   Question,
@@ -100,23 +99,22 @@ const buildEmptySession = (question: Question | null, now: number): SessionState
 })
 
 function App() {
-  const [mode, setMode] = useState<Mode>(() => {
-    const stored = loadSession()
-    if (!stored) {
-      return 'home'
-    }
-    return stored.ended ? 'results' : 'session'
-  })
   const [path, setPath] = useState(() => window.location.pathname)
   const [sessionState, setSessionState] = useState<SessionState | null>(() => loadSession())
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
   const [showFeedback, setShowFeedback] = useState(false)
-  const [elapsedMs, setElapsedMs] = useState(0)
+  const [elapsedMs, setElapsedMs] = useState(() => {
+    const stored = loadSession()
+    return stored && !stored.ended && stored.sessionStart ? Date.now() - stored.sessionStart : 0
+  })
   const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(true)
-  const [shuffledAnswers, setShuffledAnswers] = useState<{
-    questionId: number | null
-    answers: Answer[]
-  }>({ questionId: null, answers: [] })
+
+  const mode: Mode = useMemo(() => {
+    if (!sessionState) {
+      return 'home'
+    }
+    return sessionState.ended ? 'results' : 'session'
+  }, [sessionState])
 
   useEffect(() => {
     if (!sessionState) {
@@ -127,49 +125,13 @@ function App() {
   }, [sessionState])
 
   useEffect(() => {
-    if (!sessionState) {
-      setMode('home')
-      return
-    }
-    setMode(sessionState.ended ? 'results' : 'session')
-  }, [sessionState])
-
-  useEffect(() => {
-    if (!sessionState || sessionState.ended) {
-      return
-    }
-    if (sessionState.currentQuestionId !== null) {
+    const sessionStart = sessionState?.sessionStart
+    if (mode !== 'session' || !sessionStart) {
       return
     }
 
-    const nextQuestion = getRandomQuestion(sessionState.askedIds)
-    if (!nextQuestion) {
-      setSessionState({
-        ...sessionState,
-        ended: true,
-        sessionEnd: sessionState.sessionEnd ?? Date.now(),
-      })
-      return
-    }
-
-    const now = Date.now()
-    setSessionState({
-      ...sessionState,
-      askedIds: addUniqueId(sessionState.askedIds, nextQuestion.id),
-      currentQuestionId: nextQuestion.id,
-      questionStart: now,
-    })
-  }, [sessionState])
-
-  useEffect(() => {
-    if (mode !== 'session' || !sessionState?.sessionStart) {
-      return
-    }
-
-    setElapsedMs(Date.now() - sessionState.sessionStart)
-    const id = window.setInterval(() => {
-      setElapsedMs(Date.now() - sessionState.sessionStart)
-    }, 1000)
+    const updateElapsed = () => setElapsedMs(Date.now() - sessionStart)
+    const id = window.setInterval(updateElapsed, 1000)
 
     return () => window.clearInterval(id)
   }, [mode, sessionState?.sessionStart])
@@ -185,28 +147,20 @@ function App() {
   }, [])
 
   const currentQuestion = useMemo(() => {
-    if (!sessionState?.currentQuestionId) {
+    const id = sessionState?.currentQuestionId
+    if (!id) {
       return null
     }
-    return questions.find((question) => question.id === sessionState.currentQuestionId) ?? null
-  }, [sessionState?.currentQuestionId])
+    return questions.find((question) => question.id === id) ?? null
+  }, [sessionState])
 
   const nextShuffledAnswers = useMemo(
     () => (currentQuestion ? shuffle(currentQuestion.answers) : []),
-    [currentQuestion?.id],
+    [currentQuestion],
   )
 
-  useEffect(() => {
-    if (!currentQuestion) {
-      setShuffledAnswers({ questionId: null, answers: [] })
-      return
-    }
-
-    setShuffledAnswers({ questionId: currentQuestion.id, answers: nextShuffledAnswers })
-  }, [currentQuestion, nextShuffledAnswers])
-
-  const sessionEvents = sessionState?.events ?? []
-  const sessionMistakes = sessionState?.mistakes ?? []
+  const sessionEvents = useMemo(() => sessionState?.events ?? [], [sessionState])
+  const sessionMistakes = useMemo(() => sessionState?.mistakes ?? [], [sessionState])
 
   const { correct, incorrect, skipped, answeredTimeMs, currentStreak, bestStreak } = useMemo(
     () => getSessionStats(sessionEvents),
@@ -218,10 +172,7 @@ function App() {
 
   const recentTen = useMemo(() => sessionEvents.slice(-10).reverse(), [sessionEvents])
   const isContributePage = path === '/contribute'
-  const displayedAnswers =
-    currentQuestion && shuffledAnswers.questionId === currentQuestion.id
-      ? shuffledAnswers.answers
-      : nextShuffledAnswers
+  const displayedAnswers = currentQuestion ? nextShuffledAnswers : []
 
   const sessionDurationMs = useMemo(() => {
     if (!sessionState?.sessionStart) {
