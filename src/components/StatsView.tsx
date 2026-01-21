@@ -69,34 +69,6 @@ export function StatsView({
       </div>
 
       <div className="mt-8">
-        <p className="text-sm font-semibold text-slate-200">Last 10 questions</p>
-        <div className="mt-3 grid gap-3">
-          {recent.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-700 p-4 text-sm text-slate-400">
-              No answered questions yet.
-            </div>
-          ) : (
-            recent.map((item) => (
-              <div
-                key={`${item.questionId}-${item.result}-${item.timeMs}`}
-                className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-slate-100">#{item.questionId}</p>
-                  <p className="text-sm text-slate-400">{item.prompt}</p>
-                </div>
-                <span
-                  className={`w-fit rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles[item.result]}`}
-                >
-                  {item.result.charAt(0).toUpperCase() + item.result.slice(1)}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div className="mt-8">
         <p className="text-sm font-semibold text-slate-200">Mistakes recap</p>
         <div className="mt-3 grid gap-3">
           {mistakes.length === 0 ? (
@@ -137,6 +109,34 @@ export function StatsView({
                     </ul>
                   </div>
                 </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <p className="text-sm font-semibold text-slate-200">Last 10 questions</p>
+        <div className="mt-3 grid gap-3">
+          {recent.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-700 p-4 text-sm text-slate-400">
+              No answered questions yet.
+            </div>
+          ) : (
+            recent.map((item) => (
+              <div
+                key={`${item.questionId}-${item.result}-${item.timeMs}`}
+                className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-slate-100">#{item.questionId}</p>
+                  <p className="text-sm text-slate-400">{item.prompt}</p>
+                </div>
+                <span
+                  className={`w-fit rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles[item.result]}`}
+                >
+                  {item.result.charAt(0).toUpperCase() + item.result.slice(1)}
+                </span>
               </div>
             ))
           )}
