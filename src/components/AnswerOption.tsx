@@ -44,8 +44,7 @@ export function AnswerOption({
         />
       </span>
       <span className="flex-1 text-slate-100">
-        <span className="block font-medium">{answer.key.toUpperCase()}</span>
-        <span className="mt-1 block text-slate-300">{answer.text}</span>
+        <span className="block font-medium">{answer.text}</span>
       </span>
       {showFeedback && isCorrect && (
         <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300">
