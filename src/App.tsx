@@ -6,7 +6,7 @@ import { PrimaryButton } from './components/PrimaryButton'
 import { SecondaryButton } from './components/SecondaryButton'
 import { SessionHeader } from './components/SessionHeader'
 import { StatsView } from './components/StatsView'
-import { APP_NAME } from './config'
+import { APP_NAME, WHATS_NEW_CONFIG } from './config'
 import { questions } from './data/questions'
 import { shuffle } from './lib/shuffle'
 import { clearSession, loadSession, saveSession } from './sessionStorage'
@@ -107,7 +107,8 @@ function App() {
     const stored = loadSession()
     return stored && !stored.ended && stored.sessionStart ? Date.now() - stored.sessionStart : 0
   })
-  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(true)
+  const isWhatsNewActive = WHATS_NEW_CONFIG.enabled && WHATS_NEW_CONFIG.items.length > 0
+  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(isWhatsNewActive)
 
   const mode: Mode = useMemo(() => {
     if (!sessionState) {
@@ -369,16 +370,22 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
-        <Modal isOpen={isWhatsNewOpen} title="What’s new" onClose={() => setIsWhatsNewOpen(false)}>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>Mistakes recap at the end of each session</li>
-            <li>No repeated questions within a session</li>
-            <li>Answer options are now shuffled for every question</li>
-          </ul>
-          <div className="mt-6 flex justify-center">
-            <PrimaryButton onClick={() => setIsWhatsNewOpen(false)}>Close</PrimaryButton>
-          </div>
-        </Modal>
+        {isWhatsNewActive && (
+          <Modal
+            isOpen={isWhatsNewOpen}
+            title={WHATS_NEW_CONFIG.title}
+            onClose={() => setIsWhatsNewOpen(false)}
+          >
+            <ul className="list-disc space-y-2 pl-5">
+              {WHATS_NEW_CONFIG.items.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+            <div className="mt-6 flex justify-center">
+              <PrimaryButton onClick={() => setIsWhatsNewOpen(false)}>Close</PrimaryButton>
+            </div>
+          </Modal>
+        )}
         <header className="flex flex-col gap-6 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/90 p-8 shadow-lg shadow-slate-950/40">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
