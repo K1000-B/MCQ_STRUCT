@@ -775,9 +775,8 @@ export const questions: Question[] = [
     multiple: false,
     answers: [
       { key: 'a', text: 'GJ = ∫ G(x² + y²) dA', correct: false },
-      { key: 'b', text: 'none of the above', correct: false },
-      { key: 'c', text: 'GJ = ∫ G(x² + y² + Ψ²) dA', correct: false },
-      { key: 'd', text: 'none of the above', correct: true }
+      { key: 'b', text: 'none of the above', correct: true },
+      { key: 'c', text: 'GJ = ∫ G(x² + y² + Ψ²) dA', correct: false }
     ]
   },
   {
