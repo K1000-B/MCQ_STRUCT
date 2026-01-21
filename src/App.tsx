@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ContributePage } from './components/ContributePage'
+import { Modal } from './components/Modal'
 import { QuestionCard } from './components/QuestionCard'
 import { PrimaryButton } from './components/PrimaryButton'
 import { SecondaryButton } from './components/SecondaryButton'
@@ -7,8 +8,10 @@ import { SessionHeader } from './components/SessionHeader'
 import { StatsView } from './components/StatsView'
 import { APP_NAME } from './config'
 import { questions } from './data/questions'
+import { shuffle } from './lib/shuffle'
 import { clearSession, loadSession, saveSession } from './sessionStorage'
 import type {
+  Answer,
   AnswerSnapshot,
   MistakeEntry,
   Question,
@@ -109,6 +112,11 @@ function App() {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
   const [showFeedback, setShowFeedback] = useState(false)
   const [elapsedMs, setElapsedMs] = useState(0)
+  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(true)
+  const [shuffledAnswers, setShuffledAnswers] = useState<{
+    questionId: number | null
+    answers: Answer[]
+  }>({ questionId: null, answers: [] })
 
   useEffect(() => {
     if (!sessionState) {
@@ -183,6 +191,20 @@ function App() {
     return questions.find((question) => question.id === sessionState.currentQuestionId) ?? null
   }, [sessionState?.currentQuestionId])
 
+  const nextShuffledAnswers = useMemo(
+    () => (currentQuestion ? shuffle(currentQuestion.answers) : []),
+    [currentQuestion?.id],
+  )
+
+  useEffect(() => {
+    if (!currentQuestion) {
+      setShuffledAnswers({ questionId: null, answers: [] })
+      return
+    }
+
+    setShuffledAnswers({ questionId: currentQuestion.id, answers: nextShuffledAnswers })
+  }, [currentQuestion, nextShuffledAnswers])
+
   const sessionEvents = sessionState?.events ?? []
   const sessionMistakes = sessionState?.mistakes ?? []
 
@@ -196,6 +218,10 @@ function App() {
 
   const recentTen = useMemo(() => sessionEvents.slice(-10).reverse(), [sessionEvents])
   const isContributePage = path === '/contribute'
+  const displayedAnswers =
+    currentQuestion && shuffledAnswers.questionId === currentQuestion.id
+      ? shuffledAnswers.answers
+      : nextShuffledAnswers
 
   const sessionDurationMs = useMemo(() => {
     if (!sessionState?.sessionStart) {
@@ -392,6 +418,16 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <Modal isOpen={isWhatsNewOpen} title="What’s new" onClose={() => setIsWhatsNewOpen(false)}>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>Mistakes recap at the end of each session</li>
+            <li>No repeated questions within a session</li>
+            <li>Answer options are now shuffled for every question</li>
+          </ul>
+          <div className="mt-6 flex justify-center">
+            <PrimaryButton onClick={() => setIsWhatsNewOpen(false)}>Close</PrimaryButton>
+          </div>
+        </Modal>
         <header className="flex flex-col gap-6 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/90 p-8 shadow-lg shadow-slate-950/40">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -479,6 +515,7 @@ function App() {
 
                 <QuestionCard
                   question={currentQuestion}
+                  answers={displayedAnswers}
                   selectedKeys={selectedKeys}
                   showFeedback={showFeedback}
                   onSelect={handleSelect}
