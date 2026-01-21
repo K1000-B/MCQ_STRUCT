@@ -1,4 +1,4 @@
-import type { SessionResult } from '../types'
+import type { MistakeEntry, SessionEvent } from '../types'
 import { PrimaryButton } from './PrimaryButton'
 
 type StatsViewProps = {
@@ -10,11 +10,12 @@ type StatsViewProps = {
   avgTime: string
   bestStreak: number
   sessionDuration: string
-  recent: SessionResult[]
+  recent: SessionEvent[]
+  mistakes: MistakeEntry[]
   onRestart: () => void
 }
 
-const statusStyles: Record<SessionResult['result'], string> = {
+const statusStyles: Record<SessionEvent['result'], string> = {
   correct: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
   incorrect: 'bg-rose-500/15 text-rose-200 border-rose-500/40',
   skipped: 'bg-amber-500/15 text-amber-200 border-amber-500/40',
@@ -30,6 +31,7 @@ export function StatsView({
   bestStreak,
   sessionDuration,
   recent,
+  mistakes,
   onRestart,
 }: StatsViewProps) {
   return (
@@ -88,6 +90,53 @@ export function StatsView({
                 >
                   {item.result.charAt(0).toUpperCase() + item.result.slice(1)}
                 </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <p className="text-sm font-semibold text-slate-200">Mistakes recap</p>
+        <div className="mt-3 grid gap-3">
+          {mistakes.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-700 p-4 text-sm text-slate-400">
+              Great job! No incorrect answers in this session.
+            </div>
+          ) : (
+            mistakes.map((mistake) => (
+              <div
+                key={`mistake-${mistake.questionId}`}
+                className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
+              >
+                <p className="text-sm font-semibold text-slate-100">#{mistake.questionId}</p>
+                <p className="mt-1 text-sm text-slate-300">{mistake.prompt}</p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Your answer
+                    </p>
+                    <ul className="mt-2 space-y-1 text-sm text-rose-200">
+                      {mistake.selected.map((answer) => (
+                        <li key={`${mistake.questionId}-selected-${answer.key}`}>
+                          {answer.key}. {answer.text}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Correct answer
+                    </p>
+                    <ul className="mt-2 space-y-1 text-sm text-emerald-200">
+                      {mistake.correct.map((answer) => (
+                        <li key={`${mistake.questionId}-correct-${answer.key}`}>
+                          {answer.key}. {answer.text}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             ))
           )}
