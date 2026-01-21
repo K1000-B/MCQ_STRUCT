@@ -4,6 +4,11 @@ export type Answer = {
   correct: boolean
 }
 
+export type AnswerSnapshot = {
+  key: string
+  text: string
+}
+
 export type Question = {
   id: number
   prompt: string
@@ -11,9 +16,27 @@ export type Question = {
   multiple: boolean
 }
 
-export type SessionResult = {
+export type SessionEvent = {
   questionId: number
   prompt: string
   result: 'correct' | 'incorrect' | 'skipped'
   timeMs: number
+}
+
+export type MistakeEntry = {
+  questionId: number
+  prompt: string
+  selected: AnswerSnapshot[]
+  correct: AnswerSnapshot[]
+}
+
+export type SessionState = {
+  askedIds: number[]
+  currentQuestionId: number | null
+  ended: boolean
+  events: SessionEvent[]
+  mistakes: MistakeEntry[]
+  sessionStart: number | null
+  sessionEnd: number | null
+  questionStart: number | null
 }

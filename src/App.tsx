@@ -7,13 +7,14 @@ import { SessionHeader } from './components/SessionHeader'
 import { StatsView } from './components/StatsView'
 import { APP_NAME } from './config'
 import { questions } from './data/questions'
-import type { Question, SessionResult } from './types'
-
-const RECENT_BUFFER = 15
-
-type Mode = 'home' | 'session' | 'results'
-
-type AnswerStatus = 'correct' | 'incorrect'
+import { clearSession, loadSession, saveSession } from './sessionStorage'
+import type {
+  AnswerSnapshot,
+  MistakeEntry,
+  Question,
+  SessionEvent,
+  SessionState,
+} from './types'
 
 const formatDuration = (ms: number) => {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000))
@@ -24,24 +25,7 @@ const formatDuration = (ms: number) => {
 
 const formatSeconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`
 
-const pickQuestion = (pool: Question[], recentIds: number[]) => {
-  if (pool.length === 0) {
-    return null
-  }
-
-  if (pool.length <= RECENT_BUFFER || recentIds.length === 0) {
-    return pool[Math.floor(Math.random() * pool.length)]
-  }
-
-  const recentSet = new Set(recentIds)
-  const available = pool.filter((question) => !recentSet.has(question.id))
-
-  if (available.length === 0) {
-    return pool[Math.floor(Math.random() * pool.length)]
-  }
-
-  return available[Math.floor(Math.random() * available.length)]
-}
+type Mode = 'home' | 'session' | 'results'
 
 const matchesCorrectAnswers = (question: Question, selections: string[]) => {
   const correctKeys = question.answers.filter((answer) => answer.correct).map((answer) => answer.key)
@@ -51,36 +35,136 @@ const matchesCorrectAnswers = (question: Question, selections: string[]) => {
   return correctKeys.every((key) => selections.includes(key))
 }
 
-function App() {
-  const [mode, setMode] = useState<Mode>('home')
-  const [path, setPath] = useState(() => window.location.pathname)
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([])
-  const [showFeedback, setShowFeedback] = useState(false)
-  const [recentIds, setRecentIds] = useState<number[]>([])
-  const [results, setResults] = useState<SessionResult[]>([])
-  const [correctCount, setCorrectCount] = useState(0)
-  const [incorrectCount, setIncorrectCount] = useState(0)
-  const [skippedCount, setSkippedCount] = useState(0)
-  const [currentStreak, setCurrentStreak] = useState(0)
-  const [bestStreak, setBestStreak] = useState(0)
-  const [answeredTimeMs, setAnsweredTimeMs] = useState(0)
-  const [sessionStart, setSessionStart] = useState<number | null>(null)
-  const [questionStart, setQuestionStart] = useState<number | null>(null)
-  const [elapsedMs, setElapsedMs] = useState(0)
-  const [sessionDurationMs, setSessionDurationMs] = useState(0)
+const addUniqueId = (ids: number[], id: number) => (ids.includes(id) ? ids : [...ids, id])
 
-  useEffect(() => {
-    if (mode !== 'session' || sessionStart === null) {
+const getRandomQuestion = (askedIds: number[]) => {
+  const askedSet = new Set(askedIds)
+  const available = questions.filter((question) => !askedSet.has(question.id))
+  if (available.length === 0) {
+    return null
+  }
+  return available[Math.floor(Math.random() * available.length)]
+}
+
+const toAnswerSnapshots = (question: Question, keys: string[]): AnswerSnapshot[] =>
+  keys
+    .map((key) => {
+      const answer = question.answers.find((item) => item.key === key)
+      return answer ? { key: answer.key, text: answer.text } : null
+    })
+    .filter((answer): answer is AnswerSnapshot => answer !== null)
+
+const getSessionStats = (events: SessionEvent[]) => {
+  let correct = 0
+  let incorrect = 0
+  let skipped = 0
+  let answeredTimeMs = 0
+  let currentStreak = 0
+  let bestStreak = 0
+
+  events.forEach((event) => {
+    if (event.result === 'correct') {
+      correct += 1
+      currentStreak += 1
+      bestStreak = Math.max(bestStreak, currentStreak)
+      answeredTimeMs += event.timeMs
       return
     }
 
+    if (event.result === 'incorrect') {
+      incorrect += 1
+      currentStreak = 0
+      answeredTimeMs += event.timeMs
+      return
+    }
+
+    skipped += 1
+    currentStreak = 0
+  })
+
+  return { correct, incorrect, skipped, answeredTimeMs, currentStreak, bestStreak }
+}
+
+const buildEmptySession = (question: Question | null, now: number): SessionState => ({
+  askedIds: question ? [question.id] : [],
+  currentQuestionId: question ? question.id : null,
+  ended: question === null,
+  events: [],
+  mistakes: [],
+  sessionStart: now,
+  sessionEnd: question === null ? now : null,
+  questionStart: question ? now : null,
+})
+
+function App() {
+  const [mode, setMode] = useState<Mode>(() => {
+    const stored = loadSession()
+    if (!stored) {
+      return 'home'
+    }
+    return stored.ended ? 'results' : 'session'
+  })
+  const [path, setPath] = useState(() => window.location.pathname)
+  const [sessionState, setSessionState] = useState<SessionState | null>(() => loadSession())
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([])
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [elapsedMs, setElapsedMs] = useState(0)
+
+  useEffect(() => {
+    if (!sessionState) {
+      clearSession()
+      return
+    }
+    saveSession(sessionState)
+  }, [sessionState])
+
+  useEffect(() => {
+    if (!sessionState) {
+      setMode('home')
+      return
+    }
+    setMode(sessionState.ended ? 'results' : 'session')
+  }, [sessionState])
+
+  useEffect(() => {
+    if (!sessionState || sessionState.ended) {
+      return
+    }
+    if (sessionState.currentQuestionId !== null) {
+      return
+    }
+
+    const nextQuestion = getRandomQuestion(sessionState.askedIds)
+    if (!nextQuestion) {
+      setSessionState({
+        ...sessionState,
+        ended: true,
+        sessionEnd: sessionState.sessionEnd ?? Date.now(),
+      })
+      return
+    }
+
+    const now = Date.now()
+    setSessionState({
+      ...sessionState,
+      askedIds: addUniqueId(sessionState.askedIds, nextQuestion.id),
+      currentQuestionId: nextQuestion.id,
+      questionStart: now,
+    })
+  }, [sessionState])
+
+  useEffect(() => {
+    if (mode !== 'session' || !sessionState?.sessionStart) {
+      return
+    }
+
+    setElapsedMs(Date.now() - sessionState.sessionStart)
     const id = window.setInterval(() => {
-      setElapsedMs(performance.now() - sessionStart)
+      setElapsedMs(Date.now() - sessionState.sessionStart)
     }, 1000)
 
     return () => window.clearInterval(id)
-  }, [mode, sessionStart])
+  }, [mode, sessionState?.sessionStart])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -92,11 +176,36 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  const totalAnswered = correctCount + incorrectCount
-  const accuracy = totalAnswered === 0 ? 0 : (correctCount / totalAnswered) * 100
+  const currentQuestion = useMemo(() => {
+    if (!sessionState?.currentQuestionId) {
+      return null
+    }
+    return questions.find((question) => question.id === sessionState.currentQuestionId) ?? null
+  }, [sessionState?.currentQuestionId])
 
-  const recentTen = useMemo(() => results.slice(-10).reverse(), [results])
+  const sessionEvents = sessionState?.events ?? []
+  const sessionMistakes = sessionState?.mistakes ?? []
+
+  const { correct, incorrect, skipped, answeredTimeMs, currentStreak, bestStreak } = useMemo(
+    () => getSessionStats(sessionEvents),
+    [sessionEvents],
+  )
+
+  const totalAnswered = correct + incorrect
+  const accuracy = totalAnswered === 0 ? 0 : (correct / totalAnswered) * 100
+
+  const recentTen = useMemo(() => sessionEvents.slice(-10).reverse(), [sessionEvents])
   const isContributePage = path === '/contribute'
+
+  const sessionDurationMs = useMemo(() => {
+    if (!sessionState?.sessionStart) {
+      return 0
+    }
+    if (!sessionState.sessionEnd) {
+      return 0
+    }
+    return sessionState.sessionEnd - sessionState.sessionStart
+  }, [sessionState?.sessionEnd, sessionState?.sessionStart])
 
   const navigate = (nextPath: string) => {
     if (nextPath === path) {
@@ -107,44 +216,62 @@ function App() {
   }
 
   const startSession = () => {
-    const firstQuestion = pickQuestion(questions, [])
-    setMode('session')
-    setCurrentQuestion(firstQuestion)
+    clearSession()
+    const now = Date.now()
+    const firstQuestion = getRandomQuestion([])
+    const initialState = buildEmptySession(firstQuestion, now)
+    setSessionState(initialState)
     setSelectedKeys([])
     setShowFeedback(false)
-    setRecentIds([])
-    setResults([])
-    setCorrectCount(0)
-    setIncorrectCount(0)
-    setSkippedCount(0)
-    setCurrentStreak(0)
-    setBestStreak(0)
-    setAnsweredTimeMs(0)
-    const now = performance.now()
-    setSessionStart(now)
-    setQuestionStart(now)
     setElapsedMs(0)
-    setSessionDurationMs(0)
   }
 
   const finishSession = () => {
-    if (sessionStart !== null) {
-      setSessionDurationMs(performance.now() - sessionStart)
+    setSessionState((prev) => {
+      if (!prev) {
+        return prev
+      }
+      return {
+        ...prev,
+        ended: true,
+        currentQuestionId: null,
+        questionStart: null,
+        sessionEnd: prev.sessionEnd ?? Date.now(),
+      }
+    })
+  }
+
+  const moveToNextQuestion = (prev: SessionState) => {
+    const now = Date.now()
+    const askedIds =
+      prev.currentQuestionId === null
+        ? prev.askedIds
+        : addUniqueId(prev.askedIds, prev.currentQuestionId)
+    const nextQuestion = getRandomQuestion(askedIds)
+
+    if (!nextQuestion) {
+      return {
+        ...prev,
+        askedIds,
+        ended: true,
+        currentQuestionId: null,
+        questionStart: null,
+        sessionEnd: prev.sessionEnd ?? now,
+      }
     }
-    setMode('results')
+
+    return {
+      ...prev,
+      askedIds: addUniqueId(askedIds, nextQuestion.id),
+      currentQuestionId: nextQuestion.id,
+      questionStart: now,
+    }
   }
 
   const advanceQuestion = () => {
-    if (!currentQuestion) {
-      return
-    }
-    const updatedRecent = [currentQuestion.id, ...recentIds].slice(0, RECENT_BUFFER)
-    setRecentIds(updatedRecent)
-    const nextQuestion = pickQuestion(questions, updatedRecent)
-    setCurrentQuestion(nextQuestion)
+    setSessionState((prev) => (prev ? moveToNextQuestion(prev) : prev))
     setSelectedKeys([])
     setShowFeedback(false)
-    setQuestionStart(performance.now())
   }
 
   const handleSelect = (key: string) => {
@@ -162,56 +289,72 @@ function App() {
   }
 
   const handleCheckAnswer = () => {
-    if (!currentQuestion || selectedKeys.length === 0) {
+    if (!currentQuestion || selectedKeys.length === 0 || !sessionState) {
       return
     }
     const isCorrect = matchesCorrectAnswers(currentQuestion, selectedKeys)
-    const status: AnswerStatus = isCorrect ? 'correct' : 'incorrect'
-    const timeSpent = questionStart ? performance.now() - questionStart : 0
+    const timeSpent = sessionState.questionStart ? Date.now() - sessionState.questionStart : 0
+    const status: SessionEvent['result'] = isCorrect ? 'correct' : 'incorrect'
+    const correctKeys = currentQuestion.answers
+      .filter((answer) => answer.correct)
+      .map((answer) => answer.key)
 
-    setResults((prev) => [
-      ...prev,
-      {
-        questionId: currentQuestion.id,
-        prompt: currentQuestion.prompt,
-        result: status,
-        timeMs: timeSpent,
-      },
-    ])
+    const mistake: MistakeEntry | null = isCorrect
+      ? null
+      : {
+          questionId: currentQuestion.id,
+          prompt: currentQuestion.prompt,
+          selected: toAnswerSnapshots(currentQuestion, selectedKeys),
+          correct: toAnswerSnapshots(currentQuestion, correctKeys),
+        }
 
-    if (isCorrect) {
-      setCorrectCount((prev) => prev + 1)
-      setCurrentStreak((prev) => {
-        const next = prev + 1
-        setBestStreak((best) => Math.max(best, next))
-        return next
-      })
-    } else {
-      setIncorrectCount((prev) => prev + 1)
-      setCurrentStreak(0)
-    }
+    setSessionState((prev) => {
+      if (!prev) {
+        return prev
+      }
+      return {
+        ...prev,
+        events: [
+          ...prev.events,
+          {
+            questionId: currentQuestion.id,
+            prompt: currentQuestion.prompt,
+            result: status,
+            timeMs: timeSpent,
+          },
+        ],
+        mistakes: mistake ? [...prev.mistakes, mistake] : prev.mistakes,
+      }
+    })
 
-    setAnsweredTimeMs((prev) => prev + timeSpent)
     setShowFeedback(true)
   }
 
   const handleSkip = () => {
-    if (!currentQuestion) {
+    if (!currentQuestion || !sessionState) {
       return
     }
-    const timeSpent = questionStart ? performance.now() - questionStart : 0
-    setResults((prev) => [
-      ...prev,
-      {
-        questionId: currentQuestion.id,
-        prompt: currentQuestion.prompt,
-        result: 'skipped',
-        timeMs: timeSpent,
-      },
-    ])
-    setSkippedCount((prev) => prev + 1)
-    setCurrentStreak(0)
-    advanceQuestion()
+    const timeSpent = sessionState.questionStart ? Date.now() - sessionState.questionStart : 0
+    setSessionState((prev) => {
+      if (!prev) {
+        return prev
+      }
+      const nextState = moveToNextQuestion({
+        ...prev,
+        events: [
+          ...prev.events,
+          {
+            questionId: currentQuestion.id,
+            prompt: currentQuestion.prompt,
+            result: 'skipped',
+            timeMs: timeSpent,
+          },
+        ],
+      })
+      return nextState
+    })
+    setSelectedKeys([])
+    setShowFeedback(false)
   }
 
   const statusBadge = useMemo(() => {
@@ -256,12 +399,12 @@ function App() {
                 {APP_NAME}
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">
-                {isContributePage ? `Contribute to ${APP_NAME}` : 'Random infinite MCQ training'}
+                {isContributePage ? `Contribute to ${APP_NAME}` : 'Finite MCQ training sessions'}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-slate-300">
                 {isContributePage
                   ? 'Support the project, share new questions, and help keep the training set fresh.'
-                  : 'Run focused practice sessions with instant feedback, a live timer, and clean session stats. Results reset at the end of each session for a fresh start every time.'}
+                  : 'Run focused practice sessions with instant feedback, a live timer, and clean session stats. Each session goes through every question once, then ends automatically.'}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -314,7 +457,7 @@ function App() {
                 <h2 className="text-2xl font-semibold text-white">Start a new session</h2>
                 <p className="mt-3 text-sm text-slate-300">
                   Tap start when you are ready to answer questions. Finish anytime to see your
-                  stats. Sessions are temporary and do not save history.
+                  stats. Every session asks each question once and then wraps up automatically.
                 </p>
                 <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <PrimaryButton onClick={startSession}>Start session</PrimaryButton>
@@ -326,9 +469,9 @@ function App() {
               <div className="flex flex-col gap-6">
                 <SessionHeader
                   elapsed={formatDuration(elapsedMs)}
-                  correct={correctCount}
-                  incorrect={incorrectCount}
-                  skipped={skippedCount}
+                  correct={correct}
+                  incorrect={incorrect}
+                  skipped={skipped}
                   streak={currentStreak}
                   bestStreak={bestStreak}
                   onFinish={finishSession}
@@ -382,14 +525,15 @@ function App() {
             {mode === 'results' && (
               <StatsView
                 totalAnswered={totalAnswered}
-                correct={correctCount}
-                incorrect={incorrectCount}
-                skipped={skippedCount}
+                correct={correct}
+                incorrect={incorrect}
+                skipped={skipped}
                 accuracy={accuracy}
                 avgTime={totalAnswered === 0 ? '0.0s' : formatSeconds(answeredTimeMs / totalAnswered)}
                 bestStreak={bestStreak}
                 sessionDuration={formatDuration(sessionDurationMs)}
                 recent={recentTen}
+                mistakes={sessionMistakes}
                 onRestart={startSession}
               />
             )}
