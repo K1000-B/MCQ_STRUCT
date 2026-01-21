@@ -1,8 +1,9 @@
-import type { Question } from '../types'
+import type { Answer, Question } from '../types'
 import { AnswerOption } from './AnswerOption'
 
 type QuestionCardProps = {
   question: Question
+  answers: Answer[]
   selectedKeys: string[]
   showFeedback: boolean
   onSelect: (key: string) => void
@@ -10,6 +11,7 @@ type QuestionCardProps = {
 
 export function QuestionCard({
   question,
+  answers,
   selectedKeys,
   showFeedback,
   onSelect,
@@ -30,7 +32,7 @@ export function QuestionCard({
         {question.prompt}
       </h2>
       <div className="mt-6 grid gap-3">
-        {question.answers.map((answer) => (
+        {answers.map((answer) => (
           <AnswerOption
             key={answer.key}
             answer={answer}
