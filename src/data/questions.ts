@@ -863,8 +863,8 @@ export const questions: Question[] = [
     answers: [
       { key: 'a', text: 'trigonometric', correct: false },
       { key: 'b', text: 'polynomial (quadratic)', correct: false },
-      { key: 'c', text: 'polynomial (cubic)', correct: true },
-      { key: 'd', text: 'none of the above', correct: false }
+      { key: 'c', text: 'polynomial (cubic)', correct: false },
+      { key: 'd', text: 'none of the above', correct: true }
     ]
   },
   {
