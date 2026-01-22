@@ -523,8 +523,8 @@ export const questions: Question[] = [
     prompt: 'The PCVW allows to:',
     multiple: false,
     answers: [
-      { key: 'a', text: 'find the compatible solution among the equilibrated ones', correct: false },
-      { key: 'b', text: 'find the equilibrated solution among the compatible ones', correct: true },
+      { key: 'a', text: 'find the compatible solution among the equilibrated ones', correct: true },
+      { key: 'b', text: 'find the equilibrated solution among the compatible ones', correct: false },
       {
         key: 'c',
         text: 'find the compatible and equilibrated solutions among all the possible independent stress and displacement fields',
@@ -649,9 +649,9 @@ export const questions: Question[] = [
     multiple: false,
     answers: [
       { key: 'a', text: 'never', correct: false },
-      { key: 'b', text: 'if the structure can sustain the loads through an internal axial load path', correct: true },
+      { key: 'b', text: 'if the structure can sustain the loads through an internal axial load path', correct: false },
       { key: 'c', text: 'whenever the shear deformability is negligible', correct: false },
-      { key: 'd', text: 'always', correct: false }
+      { key: 'd', text: 'always', correct: true }
     ]
   },
   {
