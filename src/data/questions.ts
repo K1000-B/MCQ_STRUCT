@@ -377,9 +377,9 @@ export const questions: Question[] = [
     prompt: 'The shear stress transmitted by a glued connection is:',
     multiple: false,
     answers: [
-      { key: 'a', text: 'higher at the extremities', correct: false },
+      { key: 'a', text: 'higher at the extremities', correct: true },
       { key: 'b', text: 'lower at the extremities', correct: false },
-      { key: 'c', text: 'constant', correct: true },
+      { key: 'c', text: 'constant', correct: false },
       { key: 'd', text: 'described by a sin function', correct: false },
       { key: 'e', text: 'described by a cos function', correct: false },
       { key: 'f', text: 'described by a quadratic polynomial function', correct: false },
