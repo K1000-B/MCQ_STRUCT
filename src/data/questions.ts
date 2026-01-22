@@ -695,12 +695,12 @@ export const questions: Question[] = [
         text: 'the different bending behavior of beams around the principal axis x and y',
         correct: false
       },
-      { key: 'b', text: 'torsional stiffness', correct: false },
+      { key: 'b', text: 'torsional stiffness', correct: true },
       { key: 'c', text: 'interaction between axial and bending stiffness of a beam', correct: false },
       {
         key: 'd',
         text: 'the derivative of the axial stress in the panel of a thin-walled cross-section',
-        correct: true
+        correct: false
       },
       { key: 'e', text: 'none of the above', correct: false }
     ]
